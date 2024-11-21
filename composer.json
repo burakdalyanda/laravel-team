@@ -1,0 +1,58 @@
+{
+    "name": "burakdalyanda/laravel-team",
+    "description": "A Laravel package for team management and access control.",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "team",
+        "guard",
+        "team management",
+        "access control"
+    ],
+    "authors": [
+        {
+            "name": "Burak Dalyanda",
+            "email": "burak.dalyanda@hotmail.com",
+            "homepage": "https://github.com/burakdalyanda",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://github.com/burakdalyanda/laravel-team",
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^9.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "BurakDalyanda\\TeamGuard\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": [
+        {
+            "laravel": {
+                "providers": [
+                    "BurakDalyanda\\TeamGuard\\Providers\\TeamGuardServiceProvider"
+                ]
+            }
+        }
+    ],
+    "scripts": {
+        "post-install-cmd": [
+            "@php artisan vendor:publish --provider=\"BurakDalyanda\\TeamGuard\\Providers\\TeamGuardServiceProvider\""
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --provider=\"BurakDalyanda\\TeamGuard\\Providers\\TeamGuardServiceProvider\""
+        ]
+    }
+}
