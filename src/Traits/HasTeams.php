@@ -2,10 +2,13 @@
 
 namespace BurakDalyanda\TeamGuard\Traits;
 
+use BurakDalyanda\TeamGuard\Models\ModelHasTeam;
 use BurakDalyanda\TeamGuard\Models\Teams;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Trait HasTeams
@@ -38,7 +41,12 @@ trait HasTeams {
         });
     }
 
-    public function teams(): MorphToMany
+    /**
+     * Get all teams assigned to the model.
+     *
+     * @return BelongsToMany
+     */
+    public function teams(): BelongsToMany
     {
         return $this->morphToMany(
             Teams::class,
@@ -85,7 +93,7 @@ trait HasTeams {
      * @param $team
      * @return int
      */
-    public function removeStructure($team): int
+    public function removeTeam($team): int
     {
         $result = $this->teams()->detach($team);
 
@@ -173,5 +181,88 @@ trait HasTeams {
         $team = $this->getStoredTeam($team);
 
         return $this->getCachedTeams()->contains('id', $team->id);
+    }
+
+    /**
+     * Get the IDs of the model's teams.
+     *
+     * @return Collection
+     */
+    public function getTeamIds(): Collection
+    {
+        $cachedTeams = $this->getCachedTeams();
+        if(is_array($cachedTeams)){
+            return collect($cachedTeams);
+        }
+
+        return $cachedTeams->pluck('id');
+    }
+
+    /**
+     * Get the team instance.
+     *
+     * @return HasOneThrough
+     */
+    public function getModelTeam(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Teams::class,
+            ModelHasTeam::class,
+            'model_id',
+            'id',
+            'id',
+            'team_id'
+        )->where('model_type', self::class);
+    }
+
+    /**
+     * Get the team instance by ID, name, or team instance.
+     *
+     * @param int|string|Teams $team
+     * @return int|Teams
+     */
+    protected function getStoredTeam(int|string|Teams $team): int|Teams
+    {
+        if (is_numeric($team)) {
+            return Teams::findOrFail($team);
+        }
+
+        if (is_string($team)) {
+            return Teams::where('name', $team)->firstOrFail();
+        }
+
+        return $team;
+    }
+
+    /**
+     * Get the cached teams assigned to the model.
+     *
+     * @return Collection|array
+     */
+    protected function getCachedTeams(): Collection|array
+    {
+        $cacheKey = $this->getCacheKey();
+
+        return Cache::remember($cacheKey, now()->addMinutes(60), function () {
+            return $this->teams()->get();
+        });
+    }
+
+    /**
+     * Clear the cache for the model's teams.
+     */
+    protected function clearTeamsCache(): void
+    {
+        Cache::forget($this->getCacheKey());
+    }
+
+    /**
+     * Get the cache key for the model's teams.
+     *
+     * @return string
+     */
+    protected function getCacheKey(): string
+    {
+        return 'team-guard.' . $this::class . '.' . $this->getKey();
     }
 }
