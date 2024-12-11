@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Teams extends Model {
+class Team extends Model {
     protected $fillable = [
         'name',
         'description',
@@ -21,7 +21,7 @@ class Teams extends Model {
      */
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(Teams::class, 'id', 'parent_id');
+        return $this->belongsTo(Team::class, 'id', 'parent_id');
     }
 
     /**
@@ -29,7 +29,7 @@ class Teams extends Model {
      */
     public function child(): HasMany
     {
-        return $this->hasMany(Teams::class, 'parent_id', 'id');
+        return $this->hasMany(Team::class, 'parent_id', 'id');
     }
 
     /**
