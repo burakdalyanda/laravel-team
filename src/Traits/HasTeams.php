@@ -3,7 +3,7 @@
 namespace BurakDalyanda\TeamGuard\Traits;
 
 use BurakDalyanda\TeamGuard\Models\ModelHasTeam;
-use BurakDalyanda\TeamGuard\Models\Teams;
+use BurakDalyanda\TeamGuard\Models\Team;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
@@ -33,12 +33,16 @@ trait HasTeams {
             if (method_exists($model, 'isForceDeleting') && !$model->isForceDeleting()) {
                 return;
             }
-            $model->teams()->detach();
-        });
 
-        static::updated(function ($model) {
-            $model->clearTeamsCache();
+            if(! is_a($model, Team::class)){
+                $model->teams()->detach();
+            }
         });
+    }
+
+    public function getTeamsClass(): string
+    {
+
     }
 
     /**
@@ -49,11 +53,11 @@ trait HasTeams {
     public function teams(): BelongsToMany
     {
         return $this->morphToMany(
-            Teams::class,
+            Team::class,
             'model',
             'model_has_teams',
             'model_id',
-            'team_id'
+            'team_id',
         );
     }
     /**
@@ -128,7 +132,7 @@ trait HasTeams {
 
         $result = $this->teams()->sync(array_fill_keys(
             $teams,
-            ['model_type' => self::class]
+            ['model_type' => self::class],
         ));
 
         $this->clearTeamsCache();
@@ -162,7 +166,7 @@ trait HasTeams {
 
         $result = $this->teams()->syncWithoutDetaching(array_fill_keys(
             $teams,
-            ['model_type' => self::class]
+            ['model_type' => self::class],
         ));
 
         $this->clearTeamsCache();
@@ -173,10 +177,10 @@ trait HasTeams {
     /**
      * Determine if the model has the given team.
      *
-     * @param int|string|Teams $team
+     * @param int|string|Team $team
      * @return bool
      */
-    public function hasTeam(int|string|Teams $team): bool
+    public function hasTeam(int|string|Team $team): bool
     {
         $team = $this->getStoredTeam($team);
 
@@ -206,29 +210,29 @@ trait HasTeams {
     public function getModelTeam(): HasOneThrough
     {
         return $this->hasOneThrough(
-            Teams::class,
+            Team::class,
             ModelHasTeam::class,
             'model_id',
             'id',
             'id',
-            'team_id'
+            'team_id',
         )->where('model_type', self::class);
     }
 
     /**
      * Get the team instance by ID, name, or team instance.
      *
-     * @param int|string|Teams $team
-     * @return int|Teams
+     * @param int|string|Team $team
+     * @return int|Team
      */
-    protected function getStoredTeam(int|string|Teams $team): int|Teams
+    protected function getStoredTeam(int|string|Team $team): int|Team
     {
         if (is_numeric($team)) {
-            return Teams::findOrFail($team);
+            return Team::findOrFail($team);
         }
 
         if (is_string($team)) {
-            return Teams::where('name', $team)->firstOrFail();
+            return Team::where('name', $team)->firstOrFail();
         }
 
         return $team;
