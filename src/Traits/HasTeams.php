@@ -25,7 +25,7 @@ trait HasTeams
 {
     public static function bootHasTeams(): void
     {
-        static::deleting(static function (Model $model): void {
+        static::deleting(static function (self $model): void {
             if (method_exists($model, 'isForceDeleting') && ! $model->isForceDeleting()) {
                 return;
             }
@@ -34,6 +34,9 @@ trait HasTeams
         });
     }
 
+    /**
+     * @return MorphToMany<Model, $this>
+     */
     public function teams(): MorphToMany
     {
         return $this->morphToMany(
@@ -59,6 +62,9 @@ trait HasTeams
         return $class;
     }
 
+    /**
+     * @param  Model|int|string|array<array-key, Model|int|string>  ...$teams
+     */
     public function assignTeam(Model|int|string|array ...$teams): static
     {
         $this->ensureTeamableIsPersisted();
@@ -80,6 +86,9 @@ trait HasTeams
         return $this;
     }
 
+    /**
+     * @param  Model|int|string|array<array-key, Model|int|string>  ...$teams
+     */
     public function assignToTeam(Model|int|string|array ...$teams): static
     {
         return $this->assignTeam(...$teams);
@@ -190,6 +199,9 @@ trait HasTeams
         return $this->teams()->whereKey($this->resolveTeam($team)->getKey())->exists();
     }
 
+    /**
+     * @param  Model|int|string|array<array-key, Model|int|string>  ...$teams
+     */
     public function hasAnyTeam(Model|int|string|array ...$teams): bool
     {
         $ids = $this->resolveTeams($teams)->modelKeys();
@@ -197,6 +209,9 @@ trait HasTeams
         return $ids !== [] && $this->teams()->whereKey($ids)->exists();
     }
 
+    /**
+     * @param  Model|int|string|array<array-key, Model|int|string>  ...$teams
+     */
     public function hasAllTeams(Model|int|string|array ...$teams): bool
     {
         $ids = array_values(array_unique($this->resolveTeams($teams)->modelKeys(), SORT_REGULAR));
@@ -225,6 +240,11 @@ trait HasTeams
         return $this->firstTeam();
     }
 
+    /**
+     * @param  Builder<static>  $query
+     * @param  Model|int|string|array<array-key, Model|int|string>  $teams
+     * @return Builder<static>
+     */
     public function scopeWhereTeam(Builder $query, Model|int|string|array $teams): Builder
     {
         $items = is_array($teams) ? $teams : [$teams];
@@ -232,6 +252,11 @@ trait HasTeams
         return $this->scopeWhereAnyTeam($query, ...$items);
     }
 
+    /**
+     * @param  Builder<static>  $query
+     * @param  Model|int|string|array<array-key, Model|int|string>  ...$teams
+     * @return Builder<static>
+     */
     public function scopeWhereAnyTeam(Builder $query, Model|int|string|array ...$teams): Builder
     {
         $ids = $this->resolveTeams($teams)->modelKeys();
@@ -239,6 +264,11 @@ trait HasTeams
         return $query->whereHas('teams', fn (Builder $teamQuery): Builder => $teamQuery->whereKey($ids));
     }
 
+    /**
+     * @param  Builder<static>  $query
+     * @param  Model|int|string|array<array-key, Model|int|string>  ...$teams
+     * @return Builder<static>
+     */
     public function scopeWhereAllTeams(Builder $query, Model|int|string|array ...$teams): Builder
     {
         $teamIds = $this->resolveTeams($teams)->modelKeys();
@@ -254,13 +284,17 @@ trait HasTeams
         return $query;
     }
 
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
     public function scopeWithoutTeams(Builder $query): Builder
     {
         return $query->whereDoesntHave('teams');
     }
 
     /**
-     * @param  array<int, Model|int|string|array>  $teams
+     * @param  array<array-key, Model|int|string|array<array-key, Model|int|string>>  $teams
      * @return EloquentCollection<int, Model>
      */
     private function resolveTeams(array $teams): EloquentCollection

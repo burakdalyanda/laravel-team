@@ -13,6 +13,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string|null $description
+ * @property int|null $parent_id
+ * @property TeamStatus $status
+ * @property int $sort_order
+ * @property-read Team|null $parent
+ * @property-read Collection<int, Team> $children
+ */
 class Team extends Model
 {
     protected $fillable = [
@@ -47,16 +57,25 @@ class Team extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<Team, $this>
+     */
     public function parent(): BelongsTo
     {
         return $this->belongsTo($this->teamModelClass(), 'parent_id');
     }
 
+    /**
+     * @return HasMany<Team, $this>
+     */
     public function children(): HasMany
     {
         return $this->hasMany($this->teamModelClass(), 'parent_id')->orderBy('sort_order')->orderBy('name');
     }
 
+    /**
+     * @return HasMany<Team, $this>
+     */
     public function childrenRecursive(): HasMany
     {
         return $this->children()->with('childrenRecursive');
@@ -122,16 +141,28 @@ class Team extends Model
         return $this->ancestors()->contains(fn (self $ancestor): bool => $ancestor->is($team));
     }
 
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', TeamStatus::Active->value);
     }
 
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
     public function scopeRoots(Builder $query): Builder
     {
         return $query->whereNull('parent_id');
     }
 
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
     public function scopeOrdered(Builder $query): Builder
     {
         return $query->orderBy('sort_order')->orderBy('name');

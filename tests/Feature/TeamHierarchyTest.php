@@ -17,8 +17,8 @@ final class TeamHierarchyTest extends TestCase
         $engineering = Team::query()->create(['name' => 'Engineering', 'parent_id' => $company->getKey()]);
         $platform = Team::query()->create(['name' => 'Platform', 'parent_id' => $engineering->getKey()]);
 
-        self::assertTrue($engineering->parent->is($company));
-        self::assertTrue($company->children->first()->is($engineering));
+        self::assertTrue($engineering->parent()->firstOrFail()->is($company));
+        self::assertTrue($company->children()->firstOrFail()->is($engineering));
         self::assertEqualsCanonicalizing(
             [$engineering->getKey(), $company->getKey()],
             $platform->ancestors()->modelKeys(),
