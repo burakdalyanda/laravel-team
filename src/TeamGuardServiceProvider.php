@@ -1,62 +1,43 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BurakDalyanda\TeamGuard;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 
-class TeamGuardServiceProvider extends ServiceProvider {
-    public function boot(): void
-    {
-        $this->offerPublishing();
-
-        $this->registerCommands();
-    }
-
+final class TeamGuardServiceProvider extends ServiceProvider
+{
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../../config/team-guard.php', 'team-guard');
+        $this->mergeConfigFrom(__DIR__.'/../config/team-guard.php', 'team-guard');
     }
 
-    protected function offerPublishing(): void {
+    public function boot(): void
+    {
         if (! $this->app->runningInConsole()) {
             return;
         }
 
-        if (! function_exists('config_path')) {
-            // function not available and 'publish' not relevant in Lumen
-            return;
-        }
+        $this->publishes([
+            __DIR__.'/../config/team-guard.php' => config_path('team-guard.php'),
+        ], 'team-guard-config');
 
         $this->publishes([
-            __DIR__ . '/../../config/team-guard.php' => config_path('team-guard.php'),
-        ], 'config');
-
-        $this->publishes([
-            __DIR__.'/../database/migrations/create_teams_tables.php.stub' => $this->getMigrationFileName('create_teams_tables.php'),
-        ], 'teams-migrations');
+            __DIR__.'/../database/migrations/create_teams_tables.php.stub' => $this->migrationPath(),
+        ], 'team-guard-migrations');
     }
 
-    protected function registerCommands(): void
+    private function migrationPath(): string
     {
-        $this->commands([
-            Commands\CacheReset::class
-        ]);
-    }
+        $migration = 'create_teams_tables.php';
+        $directory = $this->app->databasePath('migrations');
+        $files = $this->app->make(Filesystem::class);
 
-    /**
-     * Returns existing migration file if found, else uses the current timestamp.
-     */
-    protected function getMigrationFileName(string $migrationFileName): string
-    {
-        $timestamp = date('Y_m_d_His');
-
-        $filesystem = $this->app->make(Filesystem::class);
-
-        return Collection::make([$this->app->databasePath().DIRECTORY_SEPARATOR.'migrations'.DIRECTORY_SEPARATOR])
-            ->flatMap(fn ($path) => $filesystem->glob($path.'*_'.$migrationFileName))
-            ->push($this->app->databasePath()."/migrations/{$timestamp}_{$migrationFileName}")
+        return (string) Collection::make($files->glob($directory.'/*_'.$migration))
+            ->push($directory.'/'.date('Y_m_d_His').'_'.$migration)
             ->first();
     }
 }
