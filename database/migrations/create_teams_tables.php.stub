@@ -1,22 +1,51 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
+declare(strict_types=1);
+
+use BurakDalyanda\TeamGuard\Enums\TeamStatus;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
+        $teamsTable = (string) config('team-guard.table_names.teams', 'teams');
+        $pivotTable = (string) config('team-guard.table_names.model_has_teams', 'model_has_teams');
+        $teamKey = (string) config('team-guard.column_names.team_pivot_key', 'team_id');
+        $modelKey = (string) config('team-guard.column_names.model_morph_key', 'model_id');
+        $modelType = (string) config('team-guard.morph_name', 'model').'_type';
+
+        Schema::create($teamsTable, function (Blueprint $table) use ($teamsTable): void {
+            $table->id();
+            $table->string('name')->unique();
+            $table->text('description')->nullable();
+            $table->foreignId('parent_id')->nullable()->constrained($teamsTable)->nullOnDelete();
+            $table->string('status')->default(TeamStatus::Active->value)->index();
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->timestamps();
+        });
+
+        Schema::create($pivotTable, function (Blueprint $table) use ($modelKey, $modelType, $teamKey, $teamsTable): void {
+            $table->foreignId($teamKey)->constrained($teamsTable)->cascadeOnDelete();
+
+            match (config('team-guard.model_key_type', 'int')) {
+                'int' => $table->unsignedBigInteger($modelKey),
+                'uuid' => $table->uuid($modelKey),
+                'ulid' => $table->ulid($modelKey),
+                default => throw new \InvalidArgumentException('team-guard.model_key_type must be int, uuid, or ulid.'),
+            };
+
+            $table->string($modelType);
+            $table->unique([$teamKey, $modelKey, $modelType], 'model_has_teams_unique');
+            $table->index([$modelKey, $modelType], 'model_has_teams_model_index');
+        });
     }
 
-    /**
-    * Reverse the migrations.
-    */
     public function down(): void
     {
+        Schema::dropIfExists((string) config('team-guard.table_names.model_has_teams', 'model_has_teams'));
+        Schema::dropIfExists((string) config('team-guard.table_names.teams', 'teams'));
     }
 };

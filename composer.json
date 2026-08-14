@@ -1,14 +1,13 @@
 {
     "name": "burakdalyanda/laravel-team",
-    "description": "A Laravel package for team management and access control.",
-    "license": "MIT",
+    "description": "Laravel-native team membership and hierarchical team management.",
     "keywords": [
+        "access control",
         "laravel",
         "team",
-        "guard",
-        "team management",
-        "access control"
+        "team management"
     ],
+    "license": "MIT",
     "authors": [
         {
             "name": "Burak Dalyanda",
@@ -19,38 +18,37 @@
     ],
     "homepage": "https://github.com/burakdalyanda/laravel-team",
     "require": {
-        "php": "^8.2",
-        "illuminate/support": "^9.0|^10.0|^11.0",
-        "laravel/framework": "^9.0|^10.0|^11.0",
-        "illuminate/database": "^9.0|^10.0|^11.0"
+        "php": "^8.3",
+        "illuminate/contracts": "^11.0|^12.0|^13.0",
+        "illuminate/database": "^11.0|^12.0|^13.0",
+        "illuminate/filesystem": "^11.0|^12.0|^13.0",
+        "illuminate/support": "^11.0|^12.0|^13.0"
     },
     "require-dev": {
-        "larastan/larastan": "^1.0|^2.0",
-        "orchestra/testbench": "^6.23|^7.0|^8.0|^9.0",
-        "phpunit/phpunit": "^9.0"
+        "larastan/larastan": "^2.9|^3.0",
+        "laravel/pint": "^1.18",
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^10.5|^11.0|^12.0"
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "BurakDalyanda\\TeamGuard\\": "src"
-        },
-        "files": [
-            "src/helpers.php"
-        ]
+            "BurakDalyanda\\TeamGuard\\": "src/"
+        }
     },
     "autoload-dev": {
         "psr-4": {
-            "BurakDalyanda\\TeamGuard\\Tests\\": "tests"
+            "BurakDalyanda\\TeamGuard\\Tests\\": "tests/"
         }
     },
     "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        },
         "sort-packages": true
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "1.x-dev",
-            "dev-master": "1.x-dev"
+            "dev-main": "2.x-dev"
         },
         "laravel": {
             "providers": [
@@ -59,8 +57,16 @@
         }
     },
     "scripts": {
+        "analyse": "phpstan analyse --memory-limit=1G",
+        "format": "pint",
+        "format:check": "pint --test",
         "test": "phpunit",
-        "format": "php-cs-fixer fix --allow-risky=yes",
-        "analyse": "phpstan analyse"
+        "verify": [
+            "@validate",
+            "@format:check",
+            "@analyse",
+            "@test"
+        ],
+        "validate": "composer validate --strict"
     }
 }
