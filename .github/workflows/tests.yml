@@ -1,0 +1,72 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Laravel ${{ matrix.laravel }} / PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - laravel: 11
+            php: '8.3'
+            testbench: '^9.0'
+          - laravel: 12
+            php: '8.3'
+            testbench: '^10.0'
+          - laravel: 13
+            php: '8.3'
+            testbench: '^11.0'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2
+
+      - name: Select framework testbench
+        run: composer require --dev "orchestra/testbench:${{ matrix.testbench }}" --no-update --no-interaction
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Validate package metadata
+        run: composer validate --strict
+
+      - name: Audit dependencies
+        run: composer audit
+
+      - name: Run behavioral tests
+        run: composer test
+
+  quality:
+    name: Static analysis and style
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Check formatting
+        run: composer format:check
+
+      - name: Run static analysis
+        run: composer analyse
