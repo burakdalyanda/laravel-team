@@ -7,7 +7,7 @@ TeamGuard adds team membership and hierarchical teams to Laravel Eloquent models
 ## Requirements
 
 - PHP 8.3 or later
-- Laravel 11, 12, or 13
+- Laravel 12 or 13
 - A database supported by Laravel
 
 ## Installation
@@ -183,7 +183,7 @@ composer install
 composer verify
 ```
 
-`composer verify` validates Composer metadata, checks formatting, runs Larastan, and executes the PHPUnit suite. CI runs the behavioral suite against Laravel 11, 12, and 13.
+`composer verify` validates Composer metadata, checks formatting, runs Larastan, and executes the PHPUnit suite. CI runs the behavioral suite against Laravel 12 and 13.
 
 See [UPGRADING.md](UPGRADING.md) before moving from v1 and [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow.
 

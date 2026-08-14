@@ -6,7 +6,7 @@ Version 2 is a reimplementation of the package's team membership purpose. Review
 
 ### Runtime requirements
 
-TeamGuard v2 requires PHP 8.3+ and supports Laravel 11, 12, and 13. Laravel 9 and 10 are no longer supported.
+TeamGuard v2 requires PHP 8.3+ and supports Laravel 12 and 13. Laravel 9–11 are no longer supported. Laravel 11 is outside its security-support window and current Composer security policy blocks its available framework releases.
 
 ### Composer package name
 

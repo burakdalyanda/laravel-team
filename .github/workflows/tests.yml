@@ -15,9 +15,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - laravel: 11
-            php: '8.3'
-            testbench: '^9.0'
           - laravel: 12
             php: '8.3'
             testbench: '^10.0'
@@ -66,7 +63,9 @@ jobs:
         run: composer update --prefer-dist --no-interaction --no-progress
 
       - name: Check formatting
-        run: composer format:check
+        run: |
+          composer format
+          git diff --exit-code
 
       - name: Run static analysis
         run: composer analyse

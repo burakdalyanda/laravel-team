@@ -6,7 +6,7 @@ All notable changes to TeamGuard are documented here.
 
 ### Added
 
-- Laravel 11, 12, and 13 support on PHP 8.3+.
+- Laravel 12 and 13 support on PHP 8.3+.
 - Complete team and polymorphic membership migrations.
 - Validated hierarchical teams with ancestor and descendant APIs.
 - Idempotent assignment, synchronization, and membership query scopes.
@@ -22,4 +22,4 @@ All notable changes to TeamGuard are documented here.
 ### Removed
 
 - Incomplete global team cache, initializer, helper file, pivot model, and broken cache-reset command.
-- Unsupported Laravel 9 and 10 runtimes.
+- Unsupported Laravel 9, 10, and 11 runtimes.

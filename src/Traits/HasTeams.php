@@ -309,6 +309,7 @@ trait HasTeams
      * multi-query sync operations atomic.
      *
      * @template TValue
+     *
      * @param  Closure(): TValue  $callback
      * @return TValue
      */

@@ -6,6 +6,4 @@ namespace BurakDalyanda\TeamGuard\Exceptions;
 
 use DomainException;
 
-final class InvalidTeamHierarchy extends DomainException
-{
-}
+final class InvalidTeamHierarchy extends DomainException {}
