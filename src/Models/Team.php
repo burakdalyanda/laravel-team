@@ -82,11 +82,12 @@ class Team extends Model
     }
 
     /**
-     * @return Collection<int, static>
+     * @return Collection<int, Team>
      */
     public function ancestors(): Collection
     {
-        $ancestors = $this->newCollection();
+        /** @var Collection<int, Team> $ancestors */
+        $ancestors = new Collection;
         $seen = [];
         $current = $this->parent;
 
@@ -106,11 +107,12 @@ class Team extends Model
     }
 
     /**
-     * @return Collection<int, static>
+     * @return Collection<int, Team>
      */
     public function descendants(): Collection
     {
-        $descendants = $this->newCollection();
+        /** @var Collection<int, Team> $descendants */
+        $descendants = new Collection;
         $pending = $this->children()->get();
         $seen = [(string) $this->getKey() => true];
 
@@ -198,14 +200,14 @@ class Team extends Model
     }
 
     /**
-     * @return class-string<Model>
+     * @return class-string<Team>
      */
     private function teamModelClass(): string
     {
         $class = config('team-guard.models.team', self::class);
 
-        if (! is_string($class) || ! is_a($class, Model::class, true)) {
-            throw new LogicException('team-guard.models.team must be an Eloquent model class.');
+        if (! is_string($class) || ! is_a($class, self::class, true)) {
+            throw new LogicException('team-guard.models.team must extend the TeamGuard Team model.');
         }
 
         return $class;

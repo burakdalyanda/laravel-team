@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Event;
 use InvalidArgumentException;
@@ -26,16 +27,20 @@ trait HasTeams
     public static function bootHasTeams(): void
     {
         static::deleting(static function (self $model): void {
-            if (method_exists($model, 'isForceDeleting') && ! $model->isForceDeleting()) {
+            if (in_array(SoftDeletes::class, class_uses_recursive($model), true)) {
                 return;
             }
 
             $model->teams()->detach();
         });
+
+        static::registerModelEvent('forceDeleted', static function (self $model): void {
+            $model->teams()->detach();
+        });
     }
 
     /**
-     * @return MorphToMany<Model, $this>
+     * @return MorphToMany<Team, $this>
      */
     public function teams(): MorphToMany
     {
@@ -49,14 +54,14 @@ trait HasTeams
     }
 
     /**
-     * @return class-string<Model>
+     * @return class-string<Team>
      */
     public function getTeamsClass(): string
     {
         $class = config('team-guard.models.team', Team::class);
 
-        if (! is_string($class) || ! is_a($class, Model::class, true)) {
-            throw new LogicException('team-guard.models.team must be an Eloquent model class.');
+        if (! is_string($class) || ! is_a($class, Team::class, true)) {
+            throw new LogicException('team-guard.models.team must extend the TeamGuard Team model.');
         }
 
         return $class;
